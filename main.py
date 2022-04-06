@@ -33,9 +33,9 @@ if __name__ == "__main__":
                     data = conn.recv(1024)
                     if not data:
                         break
-                    print("Working")
+                    print("Working", data)
                     
-                    conn.sendall(data)
+                    # conn.sendall(data)
 
 
     def Discover():
