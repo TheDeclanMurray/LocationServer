@@ -1,3 +1,4 @@
+import atexit
 import logging
 from multiprocessing import Lock
 import threading
@@ -20,12 +21,11 @@ if __name__ == "__main__":
 
     activeSockets = []
 
-    
-
     def Listener(name):
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.bind((Host,Port))
             s.listen()
+            activeSockets.append(s)
             conn, addr = s.accept()
             with conn:
                 print(f"Connected by {addr}")
@@ -33,45 +33,43 @@ if __name__ == "__main__":
                     data = conn.recv(1024)
                     if not data:
                         break
-                    print("Working", data)
+                    print("Receaving data:", data)
                     
-                    # conn.sendall(data)
+                    # conn.sendall(data) # why??
 
 
     def Discover():
 
-        s = sched.scheduler(time.time, time.sleep)
-        def repeat(sc):
-            sendMulticast()
-            sc.enter(60,1,repeat, (sc,))
-        
-        s.enter(60,1,repeat, (s,))
-        s.run()
-
-    def tester(name):
-
-        s = sched.scheduler(time.time, time.sleep)
-        def repeat(sc):
-            print("Working")
-            sc.enter(10,1,repeat, (sc,))
-        
-        s.enter(60,1,repeat, (s,))
-        s.run()
-
-    def sendMulticast(message, group):
-        
-        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        sock.settimeout(0.2)
+        DiscoverSock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        DiscoverSock.settimeout(0.2)
 
         ttl = struct.pack('b',1)
-        sock.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, ttl)
+        DiscoverSock.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, ttl)
 
+        activeSockets.append(DiscoverSock)
+
+        s = sched.scheduler(time.time, time.sleep)
+        def repeat(sc):
+            sendMulticast(DiscoverSock)
+            print("Sending DISCOVER")
+            sc.enter(10,1,repeat, (sc,))
+        
+        s.enter(10,1,repeat, (s,))
+        s.run()
+
+    def sendMulticast(sock):
         Jobj = json.dumps({"type":"DISCOVER","time":time.time(),"port":Port})
         sent = sock.sendto(Jobj,multiCast)
 
+
+    def exit_handler():
+        for sock in activeSockets:
+            sock.close()
+
+    atexit.register(exit_handler)
             
-    DiscoverThread = threading.Thread(target=tester,args=("1"))
-    # ListenerThread = threading.Thread(target=Listener,args=("2"))
+    DiscoverThread = threading.Thread(target=Discover,args=("1"))
+    # ListenerThread = threading.Thread(target=Listener,args=("2")) #the main thread
 
     DiscoverThread.start()
     Listener("2")
