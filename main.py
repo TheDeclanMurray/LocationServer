@@ -21,7 +21,8 @@ if __name__ == "__main__":
 
     activeSockets = []
 
-    def Listener(name):
+    def Listener(threadName):
+        print("Listerner() running")
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.bind((Host,Port))
             s.listen()
@@ -38,7 +39,8 @@ if __name__ == "__main__":
                     # conn.sendall(data) # why??
 
 
-    def Discover():
+    def Discover(threadName):
+        print("Discover() running")
 
         DiscoverSock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         DiscoverSock.settimeout(0.2)
@@ -54,11 +56,12 @@ if __name__ == "__main__":
             print("Sending DISCOVER")
             sc.enter(10,1,repeat, (sc,))
         
-        s.enter(10,1,repeat, (s,))
+        s.enter(2,1,repeat, (s,))
         s.run()
 
     def sendMulticast(sock):
         Jobj = json.dumps({"type":"DISCOVER","time":time.time(),"port":Port})
+        Jobj = bytes(Jobj, "utf-8")
         sent = sock.sendto(Jobj,multiCast)
 
 
@@ -67,6 +70,15 @@ if __name__ == "__main__":
             sock.close()
 
     atexit.register(exit_handler)
+
+    def on_press(key):
+        try:
+            k = key.char
+        except:
+            k = key.name
+        if k == "C":
+            return False
+        
             
     DiscoverThread = threading.Thread(target=Discover,args=("1"))
     # ListenerThread = threading.Thread(target=Listener,args=("2")) #the main thread
