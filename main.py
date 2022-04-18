@@ -50,24 +50,31 @@ if __name__ == "__main__":
 
         activeSockets.append(DiscoverSock)
 
-        s = sched.scheduler(time.time, time.sleep)
-        def repeat(sc):
+       
+
+        def repeat():
             sendMulticast(DiscoverSock)
-            print("Sending DISCOVER")
-            sc.enter(10,1,repeat, (sc,))
+            t = threading.Timer(10.0,repeat)
+            t.start()
         
-        s.enter(2,1,repeat, (s,))
-        s.run()
+        t = threading.Timer(10.0,repeat)
+        t.start()
 
     def sendMulticast(sock):
         Jobj = json.dumps({"type":"DISCOVER","time":time.time(),"port":Port})
         Jobj = bytes(Jobj, "utf-8")
         sent = sock.sendto(Jobj,multiCast)
+        print("Sending DISCOVER",sent)
+
 
 
     def exit_handler():
         for sock in activeSockets:
             sock.close()
+
+        for a in threading.enumerate():
+            if a != threading.currentThread():
+                a.join()
 
     atexit.register(exit_handler)
 
