@@ -11,31 +11,31 @@ def Listener(threadName):
     global ISRUNNING
     print("Listerner() running")
 
-    DiscoverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    DiscoverSocket.bind(("127.0.0.1",Port))
-    activeSockets.append(DiscoverSocket)
+    # DiscoverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    # DiscoverSocket.bind(("127.0.0.1",Port))
+    # activeSockets.append(DiscoverSocket)
 
     while ISRUNNING:
         
-        packet, (b, a) = DiscoverSocket.recvfrom(4096)
-        packet = json.loads(packet.decode)
-        print("Discover:", b)
+        # packet, (b, a) = DiscoverSocket.recvfrom(4096)
+        # packet = json.loads(packet.decode)
+        # print("Discover:", b)
 
-        # with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        #     s.bind((Host,Port))
-        #     s.listen()
-        #     activeSockets.append(s)
-        #     conn, addr = s.accept()
-        #     with conn:
-        #         print(f"Connected by {addr}")
-        #         while True:
-        #             data = conn.recv(1024)
-        #             if not data:
-        #                 break
-        #             print("Receaving data:", data)
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.bind((Host,Port))
+            s.listen()
+            activeSockets.append(s)
+            conn, addr = s.accept()
+            with conn:
+                print(f"Connected by {addr}")
+                while True:
+                    data = conn.recv(1024)
+                    if not data:
+                        break
+                    print("Receaving data:", data)
                     
-        #             # conn.sendall(data) # why??
-        # s.close()
+                    # conn.sendall(data) # why??
+        s.close()
 
 
 def Discover(threadName):
