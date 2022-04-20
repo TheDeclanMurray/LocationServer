@@ -12,7 +12,7 @@ def Listener(threadName):
     print("Listerner() running")
 
     DiscoverSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    DiscoverSocket.bind(Port)
+    DiscoverSocket.bind(("127.0.0.1",Port))
     activeSockets.append(DiscoverSocket)
 
     while ISRUNNING:
